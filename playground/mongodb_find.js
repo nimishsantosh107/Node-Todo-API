@@ -7,12 +7,14 @@ MongoClient.connect('mongodb://localhost:27017',{useNewUrlParser: true},(err,cli
 
 	const db = client.db('TodoApp');
 
-	//let cursor = db.collection('Todos').find({completed: false});
-	//cursor.toArray().then((documents)=>{console.log(documents);},(err)=>{console.log(err);})
-
-	//LISTING
-	let cursor = db.collection('Users').find({name: 'Nimish'});
+	//LISTING ALL
+	let cursor = db.collection('Todos').find();
 	cursor.toArray().then((documents)=>{console.log(documents);},(err)=>{console.log(err);})
+
+	//FILTER LISTING
+	// let cursor = db.collection('Users').find({name: 'Nimish'});
+	// cursor.toArray().then((documents)=>{console.log(documents);},(err)=>{console.log(err);})
+	
 	//COUNT
 	cursor.count().then((count)=>{console.log(`\nDOC COUNT:  ${count}\n`);},(err)=>{console.log(err);})
 
