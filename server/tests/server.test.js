@@ -4,8 +4,20 @@ const expect = require('expect');
 const {app} = require('./../server.js');
 const {Todo} = require('./../models/todos.js');
 
+const todos = [
+	{
+		text: 'first test',
+	},{
+		text: 'second test',
+	},{
+		text: 'third test',
+	}
+];
+
 beforeEach((done)=>{
-	Todo.deleteMany({}).then(()=>done(),(e)=>{done(e);});
+	Todo.deleteMany({}).then(()=>{
+		Todo.insertMany(todos).then(()=>{done()},(e)=>{done(e);});
+	},(e)=>{done(e);});
 });
 
 describe('POST /todos:' , ()=>{
@@ -18,9 +30,9 @@ describe('POST /todos:' , ()=>{
 						expect(res.body.text).toBe(text);			//checking response
 					})
 					.expect(()=>{Todo.find().then((todos)=>{
-							expect(todos.length).toBe(1);
-							expect(todos[0].text).toBe(text);
-						})})										//checking db
+							expect(todos.length).toBe(4);
+							expect(todos[3].text).toBe(text);
+						}).catch((e)=>{done(e)});})					//checking db
 					.end(done);
 	});
 	it('should not create a new todo' , (done)=>{
@@ -29,5 +41,15 @@ describe('POST /todos:' , ()=>{
 					.send({text})
 					.expect(400)
 					.end(done);
+	});
+});
+
+describe('GET /todos:' , ()=>{
+	it('should get 3 todos back' , (done)=>{
+		request(app).get('/todos')
+					.expect(200)
+					.expect((res)=>{
+						expect(res.body.todos.length).toBe(3);
+					}).end(done);
 	});
 });
