@@ -13,10 +13,10 @@ app.use(bodyParser.json());
 //APIS
 //POST
 app.post('/todos' , (req,res)=>{
+	// console.log("\tPOST PROCESS\n\t------------");
 	var newTodo = new Todo({
 		text: req.body.text,
 	});
-	// console.log("\tPOST PROCESS\n\t------------");
 	newTodo.save().then((doc)=>{
 		// console.log(doc);
 		// console.log(`\n------------------------------------------------\n`)
@@ -28,7 +28,7 @@ app.post('/todos' , (req,res)=>{
 	});
 });
 
-//GET
+//GET ALL
 app.get('/todos' , (req,res)=>{
 	// console.log('\tGET PROCESS\n\t-----------');
 	Todo.find().then((todos)=>{
@@ -39,7 +39,7 @@ app.get('/todos' , (req,res)=>{
 		// console.log(err);
 		// console.log('\n------------------------------------------------\n');
 		res.status(400).send(err);
-	})
+	});
 });
 
 //GET BY ID
@@ -68,6 +68,48 @@ app.get('/todos/:id' , (req,res)=>{
 		res.status(404).send(id);
 	}
 });
+
+//DELETE ALL
+app.delete('/todos' , (req,res)=>{
+	//console.log('\tDELETE_ALL PROCESS\n\t------------------')
+	Todo.deleteMany({}).then((result)=>{
+		// console.log(result);
+		// console.log('\n------------------------------------------------\n');
+		res.send(result);
+	},(err)=>{
+		// console.log(err);
+		// console.log('\n------------------------------------------------\n');
+		res.status(400).send(err);
+	});
+});
+
+//DELETE BY ID
+app.delete('/todos/:id' , (req,res)=>{
+	console.log('\tDELETE_ONE PROCESS\n\t------------------');
+	var id = req.params.id;
+	if(ObjectID.isValid(id)){
+		Todo.deleteOne({_id: ObjectID(id)}).then((result)=>{
+			if(result.n===0){
+				console.log('NOT PRESENT   ',id);
+				console.log('\n------------------------------------------------\n');
+				res.status(400).send(id);
+				return
+			}
+			console.log(result);
+			console.log('\n------------------------------------------------\n');
+			res.send(result);
+		} ,(e)=>{
+			console.log(err);
+			console.log('\n------------------------------------------------\n');
+			res.status(400).send(err);
+		})
+	}else{
+		console.log('INVALID ID  ',id);
+		console.log('\n------------------------------------------------\n');
+		res.status(404).send(id);
+	}
+});
+
 
 
 //SERVER START

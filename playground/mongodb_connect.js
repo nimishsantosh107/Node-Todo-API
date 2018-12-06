@@ -8,7 +8,7 @@ MongoClient.connect('mongodb://localhost:27017',{useNewUrlParser: true},(err,cli
 	const db = client.db('TodoApp');
 
 	//TODOS ITEM
-	db.collection('Todos').insertOne({
+	db.collection('todos').insertOne({
 		text: "Eat food",
 		completed: false,
 	},function (err,result) {
