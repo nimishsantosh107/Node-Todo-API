@@ -1,9 +1,10 @@
-var express = require('express');
-var bodyParser = require('body-parser');
-var {mongoose} = require('./db/mongoose.js');
-var {ObjectID} = require('mongodb');
-var {Todo} = require('./models/todos.js');
-var {User} = require('./models/users.js');
+const _ = require('lodash');
+const express = require('express');
+const bodyParser = require('body-parser');
+const {mongoose} = require('./db/mongoose.js');
+const {ObjectID} = require('mongodb');
+const {Todo} = require('./models/todos.js');
+const {User} = require('./models/users.js');
 
 var app = express();
 app.use(bodyParser.json());
@@ -102,11 +103,40 @@ app.delete('/todos/:id' , (req,res)=>{
 			console.log(err);
 			console.log('\n------------------------------------------------\n');
 			res.status(400).send(err);
-		})
+		});
 	}else{
 		console.log('INVALID ID  ',id);
 		console.log('\n------------------------------------------------\n');
 		res.status(404).send(id);
+	}
+});
+
+//UPDATE BY ID
+app.patch('/todos/:id' , (req,res)=>{
+	console.log('\tUPDATE PROCESS\n\t------------\n');
+	var param_id = req.params.id;
+	var id = ObjectID(param_id);
+	var body = _.pick(req.body , ['text' , 'completed']);
+	if(ObjectID.isValid(id)){
+		if(_.isBoolean(body.completed) && body.completed){
+			body.completedAt = new Date().getTime();
+		}else{
+			body.completed = false;
+			body.completedAt = null;
+		}
+		Todo.findOneAndUpdate({_id:id} , {$set: body} , {new: true}).then((doc)=>{
+			console.log(doc);
+			console.log(`\n------------------------------------------------\n`)
+			res.send(doc);
+		},(e)=>{
+			console.log(err);
+			console.log('\n------------------------------------------------\n');
+			res.status(400).send(err);
+		});
+	}else{
+		console.log('INVALID ID  ',id);
+		console.log('\n------------------------------------------------\n');
+		res.status(404).send(id)
 	}
 });
 
