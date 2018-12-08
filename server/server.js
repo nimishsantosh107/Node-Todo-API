@@ -1,15 +1,17 @@
 const _ = require('lodash');
 const express = require('express');
 const bodyParser = require('body-parser');
-const {mongoose} = require('./db/mongoose.js');
 const {ObjectID} = require('mongodb');
+//MODELS IMPORTED
 const {Todo} = require('./models/todos.js');
 const {User} = require('./models/users.js');
+//MIDDLEWARE IMPORTED
+const {authenticate} = require('./middleware/authenticate.js');
+//INITIALISED DB IMPORTED
+const {mongoose} = require('./db/mongoose.js');
 
 var app = express();
 app.use(bodyParser.json());
-
-
 
 //ROUTES
 //USERS
@@ -149,6 +151,14 @@ app.patch('/todos/:id' , (req,res)=>{
 		console.log('\n------------------------------------------------\n');
 		res.status(404).send(id)
 	}});
+
+
+
+//AUTHENTICATING USER WITH HEADER TOKEN
+app.get('/users/me' ,authenticate ,(req,res)=>{
+	//uses middleware(authenticate)
+	//MIDDLEWARE PRINTS
+	res.send(req.user);});
 
 
 //SERVER START

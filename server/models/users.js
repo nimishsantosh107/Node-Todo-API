@@ -55,6 +55,27 @@ userSchema.methods = {
 		return _.pick(userObject , ['_id','email']);}
 }
 
+userSchema.statics = {
+	findByToken: function (token) {
+		let User = this;
+		let decoded;
+		try {
+			decoded = jwt.verify(token , secret);
+		} catch(e) {
+			// return new Promise((resolve,reject)=>{
+			// 	reject();
+			// });
+			return new Promise.reject();   //same as above  //JUMP TO CATCH
+		}
+
+		return User.findOne({       //returns findOne promise
+		'_id': decoded._id,
+		'tokens.token': token,
+		'tokens.access': 'auth',	
+		});
+	}
+}
+
 const User = mongoose.model('users' , userSchema);
 
 module.exports = {User,}
