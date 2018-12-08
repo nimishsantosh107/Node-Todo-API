@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const _ = require('lodash');
 
 const secret = 'secret1';
@@ -65,16 +66,38 @@ userSchema.statics = {
 			// return new Promise((resolve,reject)=>{
 			// 	reject();
 			// });
-			return new Promise.reject();   //same as above  //JUMP TO CATCH
+			return Promise.reject();   //same as above  //JUMP TO CATCH
 		}
 
 		return User.findOne({       //returns findOne promise
 		'_id': decoded._id,
 		'tokens.token': token,
 		'tokens.access': 'auth',	
-		});
-	}
+		});},
+	findByCredentials: function (email , password) {
+		let User = this;
+		return User.findOne({email}).then((user)=>{
+			if(!user){return Promise.reject();}
+			return new Promise((resolve , reject)=>{
+				bcrypt.compare(password , user.password , (err , res)=>{
+					if(res){resolve(user);}
+					else{reject(err);}
+				});
+			});
+		})}
 }
+
+userSchema.pre('save' , function (next) {
+	user = this;
+	if(user.isModified('password')){
+		bcrypt.genSalt(10 , (err , salt)=>{
+			bcrypt.hash(user.password , salt , (err , hash)=>{
+				user.password = hash;
+				next();
+			});
+		});
+	}else{next();}
+});
 
 const User = mongoose.model('users' , userSchema);
 

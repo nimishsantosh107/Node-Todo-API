@@ -13,9 +13,10 @@ const {mongoose} = require('./db/mongoose.js');
 var app = express();
 app.use(bodyParser.json());
 
-//ROUTES
-//USERS
+/***ROUTES***/
+/***USERS***/
 //CREATE USER
+//generates unique token
 app.post('/users' ,(req,res)=>{
 	console.log('\tCREATING USER\n\t-------------');
 	var reqUser =_.pick(req.body , ['email' , 'password']);
@@ -33,8 +34,40 @@ app.post('/users' ,(req,res)=>{
 		console.log(`\n------------------------------------------------\n`);
 		res.header('x-auth' , token).send(newUser);  //sent with toJSON called on it
 	});});
+//AUTHENTICATE USER
+//verifies token
+app.get('/users/me' ,authenticate ,(req,res)=>{
+	//uses middleware(authenticate)
+	//MIDDLEWARE PRINTS
+	res.send(req.user);});
+// //GET ALL
+app.get('/users' , (req,res)=>{
+	console.log('\tGET USER PROCESS\n\t----------------');
+	User.find().then((users)=>{
+		console.log(users);
+		console.log('\n------------------------------------------------\n');
+		res.send({users});
+	},(err)=>{
+		console.log(err);
+		console.log('\n------------------------------------------------\n');
+		res.status(400).send(err);});});
+//LOGIN WITH {email , password}
+app.post('/users/login' , (req,res)=>{
+	console.log("\tLOGIN PROCESS\n\t--------------");
+	let body = _.pick(req.body , ['email' , 'password']);
+	User.findByCredentials(body.email,body.password).then((user)=>{
+		console.log(user);
+		console.log(`\n------------------------------------------------\n`)
+		return user.generateAuthToken().then((token)=>{
+			res.header('x-auth' , token).send(user)
+		});
+	}).catch((e)=>{
+		console.log(e);
+		console.log(`\n------------------------------------------------\n`)
+		res.status(400).send(e);
+	});});
 
-//TODOS
+/***TODOS***/
 //POST
 app.post('/todos' , (req,res)=>{
 	console.log("\tPOST PROCESS\n\t------------");
@@ -151,14 +184,6 @@ app.patch('/todos/:id' , (req,res)=>{
 		console.log('\n------------------------------------------------\n');
 		res.status(404).send(id)
 	}});
-
-
-
-//AUTHENTICATING USER WITH HEADER TOKEN
-app.get('/users/me' ,authenticate ,(req,res)=>{
-	//uses middleware(authenticate)
-	//MIDDLEWARE PRINTS
-	res.send(req.user);});
 
 
 //SERVER START
