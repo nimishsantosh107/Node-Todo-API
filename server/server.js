@@ -58,7 +58,10 @@ app.post('/users/login' , (req,res)=>{
 	User.findByCredentials(body.email,body.password).then((user)=>{
 		console.log(user);
 		console.log(`\n------------------------------------------------\n`)
-		return user.generateAuthToken().then((token)=>{
+		return 
+
+
+		user.generateAuthToken().then((token)=>{
 			res.header('x-auth' , token).send(user)
 		});
 	}).catch((e)=>{
@@ -66,6 +69,18 @@ app.post('/users/login' , (req,res)=>{
 		console.log(`\n------------------------------------------------\n`)
 		res.status(400).send(e);
 	});});
+//LOGGING OUT
+app.delete('/users/me/token' , authenticate , (req,res)=>{
+	console.log('\tLOGGING OUT\n\t------------');
+	req.user.removeToken(req.token).then(()=>{
+		console.log('TOKEN DELETED\n--------------');
+		console.log(req.user);														//why is updated req.user not printing
+		console.log('\n------------------------------------------------\n');
+		res.status(200).send('TOKEN REMOVED');
+	},(e)=>{
+		res.status(400).send(e);
+	});});
+
 
 /***TODOS***/
 //POST

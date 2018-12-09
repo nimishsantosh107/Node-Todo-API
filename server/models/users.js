@@ -53,7 +53,16 @@ userSchema.methods = {
 	toJSON: function(){										//OVERRIDING DEFAULT toJSON METHOD WHICH IS BEING USED
 		let user = this;									//used when mongoose sends back data from DB after converting to JSON
 		let userObject = user.toObject()					//Can be used to hide data from DB being sent to user
-		return _.pick(userObject , ['_id','email']);}
+		return _.pick(userObject , ['_id','email']);},
+	removeToken: function (token) {
+		let user = this;
+		return user.updateOne({
+			$pull: {
+				tokens: {
+					token: token,
+				}
+			}
+		}); }
 }
 
 userSchema.statics = {
