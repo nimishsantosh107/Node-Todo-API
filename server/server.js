@@ -84,10 +84,11 @@ app.delete('/users/me/token' , authenticate , (req,res)=>{
 
 /***TODOS***/
 //POST
-app.post('/todos' , (req,res)=>{
+app.post('/todos' ,authenticate, (req,res)=>{
 	console.log("\tPOST PROCESS\n\t------------");
 	var newTodo = new Todo({
 		text: req.body.text,
+		_creator: req.user._id,
 	});
 	newTodo.save().then((doc)=>{
 		console.log(doc);
@@ -99,9 +100,9 @@ app.post('/todos' , (req,res)=>{
 		res.status(400).send(err);
 	});});
 //GET ALL
-app.get('/todos' , (req,res)=>{
+app.get('/todos' ,authenticate, (req,res)=>{
 	console.log('\tGET PROCESS\n\t-----------');
-	Todo.find().then((todos)=>{
+	Todo.find({_creator: req.user._id}).then((todos)=>{
 		console.log(todos);
 		console.log('\n------------------------------------------------\n');
 		res.send({todos});
@@ -111,11 +112,14 @@ app.get('/todos' , (req,res)=>{
 		res.status(400).send(err);
 	});});
 //GET BY ID
-app.get('/todos/:id' , (req,res)=>{
+app.get('/todos/:id' ,authenticate, (req,res)=>{
 	console.log('\tGET_ONE PROCESS\n\t---------------');
 	var id = req.params.id;
 	if(ObjectID.isValid(id)){
-		Todo.findById(id).then((todo)=>{
+		Todo.findOne({
+			_id: id,
+			_creator: req.user._id,
+		}).then((todo)=>{
 			if(todo===null){
 				console.log('NOT PRESENT   ',id);
 				console.log('\n------------------------------------------------\n');
@@ -136,9 +140,9 @@ app.get('/todos/:id' , (req,res)=>{
 		res.status(404).send(id);
 	}});
 //DELETE ALL
-app.delete('/todos' , (req,res)=>{
+app.delete('/todos' ,authenticate,(req,res)=>{
 	console.log('\tDELETE_ALL PROCESS\n\t------------------')
-	Todo.deleteMany({}).then((result)=>{
+	Todo.deleteMany({_creator: req.user._id}).then((result)=>{
 		console.log(result);
 		console.log('\n------------------------------------------------\n');
 		res.send(result);
@@ -148,11 +152,14 @@ app.delete('/todos' , (req,res)=>{
 		res.status(400).send(err);
 	});});
 //DELETE BY ID
-app.delete('/todos/:id' , (req,res)=>{
+app.delete('/todos/:id' ,authenticate, (req,res)=>{
 	console.log('\tDELETE_ONE PROCESS\n\t------------------');
 	var id = req.params.id;
 	if(ObjectID.isValid(id)){
-		Todo.deleteOne({_id: ObjectID(id)}).then((result)=>{
+		Todo.deleteOne({
+			_id: ObjectID(id),
+			_creator: req.user.id,
+		}).then((result)=>{
 			if(result.n===0){
 				console.log('NOT PRESENT   ',id);
 				console.log('\n------------------------------------------------\n');
@@ -173,7 +180,7 @@ app.delete('/todos/:id' , (req,res)=>{
 		res.status(404).send(id);
 	}});
 //UPDATE BY ID
-app.patch('/todos/:id' , (req,res)=>{
+app.patch('/todos/:id' ,authenticate,(req,res)=>{
 	console.log('\tUPDATE PROCESS\n\t------------\n');
 	var param_id = req.params.id;
 	var id = ObjectID(param_id);
@@ -185,7 +192,10 @@ app.patch('/todos/:id' , (req,res)=>{
 			body.completed = false;
 			body.completedAt = null;
 		}
-		Todo.findOneAndUpdate({_id:id} , {$set: body} , {new: true}).then((doc)=>{
+		Todo.findOneAndUpdate({
+			_id:id,
+			_creator: req.user._id,
+		} , {$set: body} , {new: true}).then((doc)=>{
 			console.log(doc);
 			console.log(`\n------------------------------------------------\n`)
 			res.send(doc);
